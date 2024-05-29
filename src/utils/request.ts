@@ -9,6 +9,8 @@ let request = axios.create({
 // 第二步 ：添加请求与响应拦截器
 request.interceptors.request.use((config) => {
   // config配置对象，headers属性请求头
+  console.log(config);
+  config.headers.token='123'
   //返回配置对象
   return config;
 });
@@ -16,6 +18,8 @@ request.interceptors.request.use((config) => {
 request.interceptors.response.use(
   (response) => {
     // 成功的回调
+    
+    
     //返回配置对象
     return response.data;
   },
