@@ -46,16 +46,16 @@ const login = async () => {
   // 登录逻辑
   try {
     await useStore.userLogin(form.value);
-    // ElNotification({
-    //   type: "success",
-    //   message: "登录成功",
-    // });
-    // $router.push("/");
-  } catch (error:any) {
-    // ElNotification({
-    //   type: "error",
-    //   message: error.message,
-    // });
+    ElNotification({
+      type: "success",
+      message: "登录成功",
+    });
+    $router.push("/");
+  } catch (error) {
+    ElNotification({
+      type: "error",
+      message: error.message,
+    });
   }
 };
 </script>
