@@ -7,18 +7,20 @@
           <el-form class="login_form">
             <h1>hello,欢迎登录</h1>
             <el-form-item>
-              <el-input v-model="from.username" :prefix-icon="User"></el-input>
+              <el-input v-model="form.username" :prefix-icon="User"></el-input>
             </el-form-item>
             <el-form-item>
               <el-input
-                v-model="from.password"
+                v-model="form.password"
                 type="password"
                 :prefix-icon="Lock"
                 show-password
               ></el-input>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" size="default">登录</el-button>
+              <el-button type="primary" size="default" @click="login"
+                >登录</el-button
+              >
             </el-form-item>
           </el-form>
         </el-col>
@@ -30,11 +32,32 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { User, Lock } from "@element-plus/icons-vue";
+import useUserStore from "@/stores/modules/user";
+import { useRouter } from "vue-router";
+import { ElNotification } from "element-plus";
 
-const from = ref({
+const useStore = useUserStore();
+const $router = useRouter();
+const form = ref({
   username: "admin",
   password: "111111",
 });
+const login = async () => {
+  // 登录逻辑
+  try {
+    await useStore.userLogin(form.value);
+    // ElNotification({
+    //   type: "success",
+    //   message: "登录成功",
+    // });
+    // $router.push("/");
+  } catch (error:any) {
+    // ElNotification({
+    //   type: "error",
+    //   message: error.message,
+    // });
+  }
+};
 </script>
 
 <style scoped lang="scss">
