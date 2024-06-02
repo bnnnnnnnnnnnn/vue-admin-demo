@@ -3,7 +3,7 @@ import "@/assets/styles/index.scss";
 
 
 import { createApp } from "vue";
-import { createPinia } from "pinia";
+import pinia from './stores'
 import "element-plus/dist/index.css";
 
 
@@ -14,7 +14,7 @@ import router from "./router";
 
 const app = createApp(App);
 
-app.use(createPinia());
+app.use(pinia);
 app.use(router);
 app.use(ElementPlus);
 
