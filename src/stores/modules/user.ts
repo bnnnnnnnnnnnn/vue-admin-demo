@@ -15,13 +15,12 @@ const useUserStore = defineStore("User", {
     async userLogin(data: loginForm) {
       const result: any = await reqLogin(data);
       if (result.code === 200) {
-
         // pinia仓库存储token
         this.token = result.data.token;
         localStorage.setItem("TOKEN", result.data.token);
         return "ok";
       } else {
-        throw new Error(result.data.message || '登录失败');
+        throw new Error(result.data.message || "登录失败");
       }
     },
   },
