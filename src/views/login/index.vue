@@ -18,9 +18,14 @@
               ></el-input>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" size="default" @click="login"
-                >登录</el-button
+              <el-button
+                loading="loadingShow"
+                type="primary"
+                size="default"
+                @click="login"
               >
+                登录
+              </el-button>
             </el-form-item>
           </el-form>
         </el-col>
@@ -42,16 +47,20 @@ const form = ref({
   username: "admin",
   password: "111111",
 });
+const loadingShow = ref(false);
 const login = async () => {
+  loadingShow.value = true;
   // 登录逻辑
   try {
     await useStore.userLogin(form.value);
+    $router.push("/");
     ElNotification({
       type: "success",
       message: "登录成功",
     });
-    $router.push("/");
+    loadingShow.value = false;
   } catch (error) {
+    loadingShow.value = false;
     ElNotification({
       type: "error",
       message: error.message,
