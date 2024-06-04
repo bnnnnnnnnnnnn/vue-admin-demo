@@ -1,11 +1,6 @@
 // 进行axios 二次封装 ：使用请求与响应拦截
 import axios from "axios";
-import {
-  ElNotification,
-  ElMessageBox,
-  ElMessage,
-  ElLoading,
-} from "element-plus";
+import { ElMessage } from "element-plus";
 // 第一步：利用axios对象的create方法，去创建axios实例（配置：基础路径，超时的时间
 let request = axios.create({
   baseURL: import.meta.env.VITE_APP_BASE_API,
