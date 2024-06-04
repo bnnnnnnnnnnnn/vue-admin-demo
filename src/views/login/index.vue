@@ -19,7 +19,7 @@
             </el-form-item>
             <el-form-item>
               <el-button
-                loading="loadingShow"
+                :loading="loadingShow"
                 type="primary"
                 size="default"
                 @click="login"
@@ -40,6 +40,7 @@ import { User, Lock } from "@element-plus/icons-vue";
 import useUserStore from "@/stores/modules/user";
 import { useRouter } from "vue-router";
 import { ElNotification } from "element-plus";
+import { getTime } from "@/utils/time";
 
 const useStore = useUserStore();
 const $router = useRouter();
@@ -57,6 +58,7 @@ const login = async () => {
     ElNotification({
       type: "success",
       message: "登录成功",
+      title: `HI!，${getTime()}好`,
     });
     loadingShow.value = false;
   } catch (error) {
