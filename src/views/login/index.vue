@@ -4,12 +4,17 @@
       <el-row>
         <el-col :span="12" :xs="0"></el-col>
         <el-col :span="12" :xs="24">
-          <el-form class="login_form">
+          <el-form
+            class="login_form"
+            ref="ruleFormRef"
+            :model="form"
+            :rules="rules"
+          >
             <h1>hello,欢迎登录</h1>
-            <el-form-item>
+            <el-form-item prop="username">
               <el-input v-model="form.username" :prefix-icon="User"></el-input>
             </el-form-item>
-            <el-form-item>
+            <el-form-item prop="password">
               <el-input
                 v-model="form.password"
                 type="password"
@@ -35,18 +40,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import { User, Lock } from "@element-plus/icons-vue";
 import useUserStore from "@/stores/modules/user";
 import { useRouter } from "vue-router";
-import { ElNotification } from "element-plus";
+import { ElNotification, FormRules } from "element-plus";
 import { getTime } from "@/utils/time";
+import type { loginForm } from "@/api/user/type";
 
 const useStore = useUserStore();
 const $router = useRouter();
 const form = ref({
   username: "admin",
   password: "111111",
+});
+const rules = reactive<FormRules<loginForm>>({
+  username: [
+    {
+      required: true,
+      message: "账号不能为空",
+      trigger: "change",
+    },
+  ],
+  password: [
+    {
+      required: true,
+      message: "密码不能为空",
+      trigger: "change",
+    },
+    { min: 6, max: 6, message: '请输入六位登录密码', trigger: 'blur' },
+  ],
 });
 const loadingShow = ref(false);
 const login = async () => {
