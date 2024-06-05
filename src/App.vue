@@ -10,6 +10,6 @@ import { reqLogin } from "./api/user/index";
 </script>
 <style scoped lang="scss">
 .test {
-  color: $color;
+  // color: $color;
 }
 </style>

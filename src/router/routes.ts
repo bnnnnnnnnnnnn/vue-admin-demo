@@ -1,5 +1,5 @@
 // 对外暴露配置路由 常量路由
-import HomeView from "../views/home/index.vue";
+import HomeView from "@/layout/index.vue";
 export const constanTRouter = [
   {
     path: "/",
