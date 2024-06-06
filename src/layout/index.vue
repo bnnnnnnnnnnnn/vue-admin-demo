@@ -2,13 +2,10 @@
   <div class="layout_container">
     <!-- 左侧菜单 -->
     <div class="layout_slider"></div>
-    <!-- 右侧内容 -->
-    <div>
-      <!-- 顶部导航 -->
-      <div></div>
-      <!-- 内容展示区 -->
-      <div></div>
-    </div>
+    <!-- 顶部导航 -->
+    <div class="layout_tab"></div>
+    <!-- 内容展示区 -->
+    <div class="layout_main"></div>
   </div>
 </template>
 
@@ -22,6 +19,22 @@
     width: $base-menu-width;
     height: 100vh;
     background: $base-menu-background;
+  }
+  .layout_tab {
+    position: fixed;
+    width: calc(100% - $base-menu-width);
+    height: $base-tab-hight;
+    top: 0;
+    left: $base-menu-width;
+    background-color: bisque;
+  }
+  .layout_main {
+    position: fixed;
+    width: calc(100% - $base-menu-width);
+    height: calc(100% - $base-tab-hight);
+    top: $base-tab-hight;
+    left: $base-menu-width;
+    background-color: rgb(99, 59, 192);
   }
 }
 </style>
