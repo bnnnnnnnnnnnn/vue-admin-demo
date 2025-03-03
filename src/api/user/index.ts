@@ -3,7 +3,8 @@ import type {loginForm,loginResponseData,userResponseData} from './type'
 // 统一管理接口
 enum API {
     LOGIN_URL='/user/login',
-    USERINFO_URL='/user/info'
+    USERINFO_URL='/user/info',
+    USERROLE_URL='/user/routes'
 }
 // 暴漏请求函数
 // 登录接口方法

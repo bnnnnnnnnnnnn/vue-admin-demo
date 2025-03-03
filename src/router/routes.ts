@@ -1,10 +1,33 @@
 // 对外暴露配置路由 常量路由
 import HomeView from "@/layout/index.vue";
+
 export const constanTRouter = [
   {
     path: "/",
-    name: "home", // 命名路由
     component: HomeView,
+    children: [
+      // {
+      //   path: 'home',
+      //   component: () => import('@/views/Home.vue'),
+      // },
+      {
+        path: 'set',
+        name: "Settings",
+        redirect: "/set/menu", // 默认跳转到菜单管理,
+        children: [
+          {
+            path: 'menu',
+            name: "MenuManagement",
+            component: () => import("../views/system/menuManagement/index.vue"),
+          },
+          {
+            path: 'role',
+            name: "RoleManagement",
+            component: () => import("../views/system/roleManagement/index.vue"),
+          },
+        ],
+      },
+    ],
   },
   {
     path: "/login",
