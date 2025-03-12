@@ -2,7 +2,8 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import VueDevTools from "vite-plugin-vue-devtools";
-import { viteMockServe } from "vite-plugin-mock";
+import tailwindcss from '@tailwindcss/vite'
+// import { viteMockServe } from "vite-plugin-mock";  
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
@@ -10,12 +11,14 @@ export default defineConfig(({ command }) => {
     plugins: [
       vue(),
       VueDevTools(),
-      viteMockServe({
-        // default
-        mockPath: "mock",
-        enable: command === "serve",
-      }),
+      tailwindcss(),
+      // viteMockServe({
+      //   // default
+      //   mockPath: "mock",
+      //   enable: command === "serve",
+      // }),
     ],
+    envDir: './', // 确保 Vite 读取根目录的 .env 文件
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),

@@ -39,24 +39,23 @@ const useUserStore = defineStore("User", {
     },
 
     async userLogin(data: loginForm) {
-      const result: loginResponseData = await reqLogin(data);
-      if (result.code === 200) {
+      try{
+        const result: any = await reqLogin(data);
         // 登录成功，保存 token
-        this.token = result.data.token as string;
-        SET_TOKEN(result.data.token as string);
-
-        // 请求动态路由
-        const routesResult = await reqUserRoutes();
-        if (routesResult.code === 200) {
-          const dynamicRoutes = routesResult.data.checkUser; // 获取动态路由
-
-          // 添加动态路由
-          this.addRoutes(dynamicRoutes);
-        }
-
-        return "ok";
-      } else {
-        throw new Error(result.data.message || "登录失败");
+          this.token = result.token as string;
+          SET_TOKEN(result.token as string);
+          // 获取用户信息
+          const userInfoResult = await reqUserInfo();
+          if (userInfoResult.code === 200) {
+            // 获取成功，获取并添加动态路由 
+            const dynamicRoutes = userInfoResult.data.routes;
+            this.addRoutes(dynamicRoutes);
+          }else{
+            throw new Error(userInfoResult.data.message || "获取用户信息失败");
+          }
+          return "ok";
+      }catch(error:any){
+        throw new Error(error || "登录失败");
       }
     },
   },

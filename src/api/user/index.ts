@@ -1,13 +1,50 @@
-import request  from "@/utils/request";
-import type {loginForm,loginResponseData,userResponseData} from './type'
-// 统一管理接口
-enum API {
-    LOGIN_URL='/user/login',
-    USERINFO_URL='/user/info',
-    USERROLE_URL='/user/routes'
-}
-// 暴漏请求函数
-// 登录接口方法
-export const reqLogin=(data:loginForm)=>request.post<any,loginResponseData>(API.LOGIN_URL,data)
-// 获取用户信息接口方法
-export const reqUserInfo=()=>request.get<any,userResponseData>(API.USERINFO_URL)
+import  supabase  from '@/lib/supabase';
+import type { loginForm, loginResponseData, userResponseData } from './type';
+
+//登录
+export const reqLogin = async (data: loginForm): Promise<any> => {
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
+    email: data.email,
+    password: data.password
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    token: authData.session?.access_token || '',
+    user: authData.user
+  };
+};
+
+//获取当前登录用户信息
+export const reqUserInfo = async (): Promise<any> => {
+    // const { data, error } = await supabase.auth.getUser();
+  
+    // if (error) {
+    //   throw new Error(error.message);
+    // }
+  
+    // return {
+    //   id: data.user?.id || '',
+    //   email: data.user?.email || '',
+    //   role: 'user' // 这里可以根据需要定义角色
+    // };
+  };
+
+//角色权限
+// export const reqUserRole = async () => {
+//     const { data, error } = await supabase
+//       .from('users')
+//       .select('role')
+//       .eq('id', (await supabase.auth.getUser()).data.user?.id)
+//       .single();
+  
+//     if (error) {
+//       throw new Error(error.message);
+//     }
+  
+//     return data.role;
+//   };
+  
