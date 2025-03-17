@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="layout_slider">
-      <div class="layout_slider_logo">运营平台</div>
+      <div class="layout_slider_logo">超频三  运营平台</div>
       <el-scrollbar class="scrollbar">
         <Menu />
       </el-scrollbar>

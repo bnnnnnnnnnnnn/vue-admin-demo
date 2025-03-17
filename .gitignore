@@ -28,3 +28,8 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# 忽略环境变量配置文件
+.env.d.ts
+.env.development
+.env.production

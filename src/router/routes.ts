@@ -25,6 +25,11 @@ export const constanTRouter = [
             name: "RoleManagement",
             component: () => import("../views/system/roleManagement/index.vue"),
           },
+          {
+            path: 'permissions',
+            name: "userManagement",
+            component: () => import("../views/system/userManagement/index.vue"),
+          }
         ],
       },
     ],

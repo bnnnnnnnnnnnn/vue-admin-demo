@@ -1,10 +1,27 @@
 import  supabase  from '@/lib/supabase';
-import type { loginForm, loginResponseData, userResponseData } from './type';
+import type { loginFormEmail,loginFormPhone } from './type';
 
-//登录
-export const reqLogin = async (data: loginForm): Promise<any> => {
+//登录 邮箱
+export const reqLoginEmail = async (data: loginFormEmail): Promise<any> => {
   const { data: authData, error } = await supabase.auth.signInWithPassword({
     email: data.email,
+    password: data.password
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    token: authData.session?.access_token || '',
+    user: authData.user
+  };
+};
+
+//登录 手机号
+export const reqLoginPhone = async (data: loginFormPhone): Promise<any> => {
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
+    phone: data.phone,
     password: data.password
   });
 
