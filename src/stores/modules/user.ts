@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
-import { reqLogin, reqUserInfo } from "@/api/user/index";
+import { reqLoginPhone,reqLoginEmail, reqUserInfo } from "@/api/user/index";
 import { reqUserRoutes } from "@/api/routes/index"; 
-import type { loginForm, loginResponseData } from "@/api/user/type";
+// import type { loginForm, loginResponseData } from "@/api/user/type";
 import type { UserState } from "./types/user";
 import { SET_TOKEN, GET_TOKEN } from "@/utils/token";
 import router from '@/router'; // 引入 router 实例
@@ -38,21 +38,28 @@ const useUserStore = defineStore("User", {
       });
     },
 
-    async userLogin(data: loginForm) {
+    async userLogin(data: any) {
       try{
-        const result: any = await reqLogin(data);
+        let result: any=[]
+        if(data.loginType==='email'){
+          result = await reqLoginEmail(data);
+        }else if(data.loginType==='phone'){
+          result = await reqLoginPhone(data);
+        }
+        
         // 登录成功，保存 token
           this.token = result.token as string;
+          //
           SET_TOKEN(result.token as string);
-          // 获取用户信息
-          const userInfoResult = await reqUserInfo();
-          if (userInfoResult.code === 200) {
-            // 获取成功，获取并添加动态路由 
-            const dynamicRoutes = userInfoResult.data.routes;
-            this.addRoutes(dynamicRoutes);
-          }else{
-            throw new Error(userInfoResult.data.message || "获取用户信息失败");
-          }
+          // // 获取用户信息
+          // const userInfoResult = await reqUserInfo();
+          // if (userInfoResult.code === 200) {
+          //   // 获取成功，获取并添加动态路由 
+          //   const dynamicRoutes = userInfoResult.data.routes;
+          //   this.addRoutes(dynamicRoutes);
+          // }else{
+          //   throw new Error(userInfoResult.data.message || "获取用户信息失败");
+          // }
           return "ok";
       }catch(error:any){
         throw new Error(error || "登录失败");
