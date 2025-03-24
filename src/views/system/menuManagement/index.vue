@@ -98,11 +98,11 @@ import {
   ElFormItem,
   ElCascader,
 } from "element-plus";
-import { FormInstance } from "element-plus";
-import supabase from "@/lib/supabase";
+// import { FormInstance } from "element-plus";
+import supabase from "@/services/supabase";
 
 interface MenuItem {
-  id: number;
+  id: number | null;
   name: string;
   path: string;
   component: string;
@@ -116,9 +116,9 @@ interface MenuItem {
 const props = { value: 'id', label: 'name', children: 'children', checkStrictly: true, }
 const menuList = ref<MenuItem[]>([]);
 const menuOptions = ref<MenuItem[]>([]); // Holds the menu options for cascading
-const formRef = ref<FormInstance>();
+const formRef = ref<unknown>();
 const form = reactive<MenuItem>({
-  id: 0,
+  id: null,
   name: "",
   path: "",
   component: "",
