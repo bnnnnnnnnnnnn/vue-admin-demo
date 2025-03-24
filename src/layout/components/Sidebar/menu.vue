@@ -71,7 +71,7 @@
 <script setup lang="ts" name="menu">
 import { ref, onMounted, markRaw } from "vue";
 import { useRouter } from "vue-router";
-import supabase from "@/lib/supabase";
+import supabase from "@/services/supabase";
 import { HomeFilled, Tools, Menu, UserFilled } from "@element-plus/icons-vue";
 
 const router = useRouter();

@@ -1,4 +1,4 @@
-import  supabase  from '@/lib/supabase';
+import  supabase  from '@/services/supabase';
 import type { loginFormEmail,loginFormPhone } from './type';
 
 //登录 邮箱

@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { ElMessage } from "element-plus";
-import supabase from "@/lib/supabase";
+import supabase from "@/services/supabase";
 
 const permissions = ref<any[]>([]);
 const permissionDialogVisible = ref(false);
