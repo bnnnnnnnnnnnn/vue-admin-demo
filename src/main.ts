@@ -1,11 +1,13 @@
 // 引入模板的全局样式
-import "@/assets/styles/index.scss";
 import "@/assets/styles/index.css";
+
 
 
 import { createApp } from "vue";
 import pinia from './stores'
 import "element-plus/dist/index.css";
+
+// import './assets/styles/index.css';
 
 
 //全局导入Element plus
