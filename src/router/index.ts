@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import{constanTRouter}from './routes'
+import{constanTRouter}from './components/routes'
 import { GET_TOKEN } from '@/utils/token';
 
 
