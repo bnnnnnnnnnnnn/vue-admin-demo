@@ -14,7 +14,7 @@ import type { User } from "@/api/system/type";
 
 // 用户列表
 const users = ref<User[]>([]);
-
+const loading = ref<Boolean>(false);
 
 // 弹窗和表单
 const accountDialogVisible = ref(false);
@@ -29,9 +29,12 @@ const accountForm = ref<Partial<User>>({
 // 加载用户列表
 const loadUsers = async () => {
   try {
+    loading.value = true; // 加載中
     users.value = await getUsers();
   } catch (error) {
     ElMessage.error("加载用户失败！");
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -51,7 +54,7 @@ const loadRoles = async () => {
 // 打开新增、编辑用户弹窗
 const openAddUserDialog = () => {
   //判断是新增还是编辑
-  accountForm.value = { email: "", password: "", role:[]};
+  accountForm.value = { email: "", password: "", role: [] };
   isEditMode.value = false;
   isEditPassword.value = false;
   accountDialogVisible.value = true;
@@ -60,7 +63,7 @@ const openAddUserDialog = () => {
 // 打开修改弹窗
 const openEditUserDialog = (user: User, type: string) => {
   if (type === "isEditMode") {
-    accountForm.value = { email: user.email, role:user.role };
+    accountForm.value = { email: user.email, role: user.role };
     isEditMode.value = true;
     isEditPassword.value = false;
     accountDialogVisible.value = true;
@@ -129,7 +132,7 @@ const submitUser = async (): Promise<void> => {
         ElMessage.warning("邮箱已存在，请更换邮箱！");
         return; // 邮箱已存在，不创建
       }
-      await createUser({email, password,role});
+      await createUser({ email, password, role });
       ElMessage.success("用户创建成功！");
     }
 
@@ -171,12 +174,14 @@ onMounted(() => {
   <el-card>
     <el-button type="primary" @click="openAddUserDialog">新增用户</el-button>
 
-    <el-table :data="users" border style="margin-top: 20px">
+    <el-table v-loading="loading" :data="users" border style="margin-top: 20px">
       <el-table-column type="index" label="序号" width="80px" align="center" />
       <el-table-column prop="email" label="邮箱" align="center" />
-      <el-table-column prop="role" label="角色" align="center" >
+      <el-table-column prop="role" label="角色" align="center">
         <template #default="{ row }">
-          <el-tag class="mr-1" v-for="r in row.role" :key="r.id">{{ r.name }}</el-tag>
+          <el-tag class="mr-1" v-for="r in row.role" :key="r.id">{{
+            r.name
+          }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center">

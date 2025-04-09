@@ -27,7 +27,7 @@ export interface Role {
 
 
 export interface MenuItem {
-  id: number;
+  id: number|null;
   name: string;
   path: string;
   redirect: string | null;

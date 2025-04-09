@@ -62,7 +62,6 @@ import { ref, reactive } from "vue";
 import { User, Lock } from "@element-plus/icons-vue";
 import useUserStore from "@/stores/modules/user";
 import { useRouter } from "vue-router";
-import HomeView from "@/layout/index.vue";
 import { addDynamicRoutes } from "@/router/components/dynamicRoutes";
 import { ElNotification } from "element-plus";
 import type { FormRules } from "element-plus";
@@ -114,14 +113,9 @@ const login = async () => {
       await useStore.userLogin({ ...form, loginType: "phone" });
     }
     // 动态添加路由
-    const dynamicRoute = await addDynamicRoutes();
+    addDynamicRoutes($router);
     // 添加路由
-    $router.addRoute({
-      path: "/",
-      component: HomeView, // 父布局组件
-      children: dynamicRoute, // 将动态路由添加到 children 中
-    });
-
+  
     // 使用 nextTick 确保路由已添加完毕
     await nextTick();
 
@@ -153,7 +147,8 @@ const login = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #1a1a2e;
+  // background-color: #1a1a2e;
+  background-image: url('@/assets/img/hf_index1.jpg');
 
   .login_form {
     width: 30vw;
