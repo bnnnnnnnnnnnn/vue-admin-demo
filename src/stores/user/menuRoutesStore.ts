@@ -19,12 +19,13 @@ export const useMenuStore = defineStore("menu", () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
 
-  // 初始化菜单列表
+  // 初始化菜单,路由列表
   const initMenus = async () => {
     localStorage.removeItem("menuList");
+    localStorage.removeItem("routesList");
   };
 
-  // 加载菜单
+  // 加载菜单,路由
   const loadMenus = async () => {
     // 如果菜单数据已经加载过且存在于 localStorage 中，就直接从 localStorage 获取
     const storedMenus = localStorage.getItem("menuList");
@@ -45,8 +46,9 @@ export const useMenuStore = defineStore("menu", () => {
       menuList.value = buildMenuTree(menus);
       routesList.value = buildRouterTree(menus);
 
-      // 存储菜单数据到 localStorage
+      // 存储菜单,路由数据到 localStorage
       localStorage.setItem("menuList", JSON.stringify(menuList.value));
+      localStorage.setItem("routesList", JSON.stringify(routesList.value));
     } catch (err: any) {
       error.value = err.message;
       console.error(err.message);

@@ -1,4 +1,5 @@
 import { useMenuStore } from "@/stores/user/menuRoutesStore";
+import HomeView from "@/layout/index.vue";
 import type { menus } from "@/api/system/type";
 
 // 3. 递归构建路由
@@ -11,7 +12,7 @@ function buildRoutes(routeList: any) {
       path,
       name,
       redirect,
-      component: component ? modules[`/src/views${component}`] : undefined,
+      component: component ?modules[`/src/views${component}`] : undefined,
       children: children && children.length ? buildRoutes(children) : [],
     };
     return routeObj;
@@ -19,8 +20,18 @@ function buildRoutes(routeList: any) {
 }
 
 // 4. 添加动态路由
-export const addDynamicRoutes = () => {
-  const menuStore = useMenuStore(); // 确保在函数内部调用
-
-  return buildRoutes(menuStore.routesList);
+export const addDynamicRoutes = async ($router: any) => {
+  try {
+    const routesList = JSON.parse(localStorage.getItem("routesList") || "[]");
+    const routes = buildRoutes(routesList);
+    if (routes.length) {
+      $router.addRoute({
+        path: "/",
+        component: HomeView, // 父布局组件
+        children: routes, // 将动态路由添加到 children 中
+      });
+    }
+  } catch (err) {
+    console.log(err);
+  }
 };
