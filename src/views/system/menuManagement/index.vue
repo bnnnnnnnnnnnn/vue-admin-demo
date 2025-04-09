@@ -1,24 +1,27 @@
 <template>
-  <div class="menu-manage">
+  <el-card >
     <el-button type="primary" @click="handleAdd">新增菜单</el-button>
 
     <el-table
       :data="menuList"
-      style="width: 100%; margin-top: 20px"
+      class="mt-[20px] w-full"
       :row-key="(row) => row.id"
       :tree-props="{ children: 'children' }"
+      fit
     >
-      <el-table-column prop="name" label="菜单名称" width="300" />
-      <el-table-column prop="path" label="路径" width="200" />
-      <el-table-column prop="sort_order" label="排序" width="100" />
-      <el-table-column prop="icon" label="图标" width="200">
+      <el-table-column prop="name" label="菜单名称"  />
+      <el-table-column prop="path" label="路由路径"  />
+      <el-table-column prop="redirect" label="重定向路径"  />
+      <el-table-column prop="component" label="组件路径"  />
+      <el-table-column prop="sort_order" label="排序"  />
+      <el-table-column prop="icon" label="图标" >
         <template #default="{ row }">
           <el-icon v-if="row.icon">
             <component :is="row.icon" />
           </el-icon>
         </template>
       </el-table-column>
-      <el-table-column label="是否隐藏" width="120">
+      <el-table-column label="是否隐藏" >
         <template #default="{ row }">
           <el-switch
             v-model="row.hidden"
@@ -30,7 +33,7 @@
       </el-table-column>
       <el-table-column label="操作" :fit="true">
         <template #default="{ row }">
-          <el-button size="small" @click="handleEdit(row)">编辑</el-button>
+          <el-button  type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
           <el-button size="small" type="danger" @click="handleDelete(row.id)">
             删除
           </el-button>
@@ -52,7 +55,10 @@
         <el-form-item label="路由路径" prop="path">
           <el-input v-model="form.path" />
         </el-form-item>
-        <el-form-item label="路由路径" prop="path">
+        <el-form-item label="重定向" prop="redirect">
+          <el-input v-model="form.redirect" />
+        </el-form-item>
+        <el-form-item label="组件路径" prop="path">
           <el-input v-model="form.component" />
         </el-form-item>
 
@@ -79,11 +85,11 @@
         <el-button type="primary" @click="handleSubmit">确认</el-button>
       </template>
     </el-dialog>
-  </div>
+  </el-card>
 </template>
 
 <script setup lang="ts">
-import { defineComponent, ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import {
   ElMessage,
   ElMessageBox,
@@ -98,13 +104,22 @@ import {
   ElFormItem,
   ElCascader,
 } from "element-plus";
-// import { FormInstance } from "element-plus";
-import supabase from "@/services/supabase";
+
+
+import {
+  fetchMenusApi,
+  addMenuApi,
+  updateMenuApi,
+  deleteMenuApi,
+  updateMenuStatusApi,
+  updateMenuSortOrderApi,
+} from "@/api/system/menu";
 
 interface MenuItem {
   id: number | null;
   name: string;
   path: string;
+  redirect?: string;
   component: string;
   icon?: string;
   parent_id?: number | null;
@@ -113,7 +128,12 @@ interface MenuItem {
   children?: MenuItem[];
 }
 
-const props = { value: 'id', label: 'name', children: 'children', checkStrictly: true, }
+const props = {
+  value: "id",
+  label: "name",
+  children: "children",
+  checkStrictly: true,
+};
 const menuList = ref<MenuItem[]>([]);
 const menuOptions = ref<MenuItem[]>([]); // Holds the menu options for cascading
 const formRef = ref<unknown>();
@@ -121,6 +141,7 @@ const form = reactive<MenuItem>({
   id: null,
   name: "",
   path: "",
+  redirect: "",
   component: "",
   icon: "",
   parent_id: null,
@@ -169,19 +190,6 @@ const filterMenuOptions = (menus: MenuItem[]) => {
   });
 };
 
-// 获取菜单列表
-const fetchMenus = async () => {
-  const { data, error } = await supabase
-    .from("menus")
-    .select("*")
-    .order("sort_order", { ascending: true });
-  if (error) {
-    ElMessage.error("加载菜单失败");
-  } else {
-    menuList.value = formatMenus(data);
-    menuOptions.value = filterMenuOptions(data); //
-  }
-};
 
 // 选中父菜单
 const handleCascaderChange = (value: any) => {
@@ -198,6 +206,7 @@ const handleAdd = () => {
     id: 0,
     name: "",
     path: "",
+    redirect: "", 
     component: "",
     icon: "",
     parent_id: null,
@@ -214,100 +223,71 @@ const handleEdit = (item: MenuItem) => {
   dialogVisible.value = true;
 };
 
-// 删除菜单
+
+
+const fetchMenus = async () => {
+  try {
+    const data = await fetchMenusApi();
+    menuList.value = formatMenus(data);
+    menuOptions.value = filterMenuOptions(data);
+  } catch (error) {
+    ElMessage.error(error.message);
+  }
+};
+
 const handleDelete = async (id: number) => {
-  ElMessageBox.confirm("确定删除该菜单？", "提示", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  }).then(async () => {
-    const { error } = await supabase.from("menus").delete().match({ id });
-    if (error) {
-      ElMessage.error("删除失败");
-    } else {
-      menuList.value = menuList.value.filter((menu) => menu.id !== id);
-      ElMessage.success("删除成功");
-    }
-  });
+  try {
+    await deleteMenuApi(id);
+    menuList.value = menuList.value.filter((menu) => menu.id !== id);
+    ElMessage.success("删除成功");
+  } catch (error) {
+    ElMessage.error(error.message);
+  }
 };
 
-// 更新菜单状态
 const handleStatusChange = async (row: MenuItem) => {
-  const { error } = await supabase
-    .from("menus")
-    .update({ hidden: row.hidden }) // 修改字段名
-    .match({ id: row.id });
-
-  if (error) {
-    ElMessage.error("更新菜单隐藏状态失败"); // 修改错误提示信息
+  try {
+    await updateMenuStatusApi(row.id as number, row.hidden);
+  } catch (error) {
+    ElMessage.error(error.message);
   }
 };
 
-// 更新菜单排序
 const handleSortChange = async (row: MenuItem) => {
-  const { error } = await supabase
-    .from("menus")
-    .update({ sort_order: row.sort_order })
-    .match({ id: row.id });
-  if (error) {
-    ElMessage.error("更新排序失败");
+  try {
+    await updateMenuSortOrderApi(row.id as number, row.sort_order);
+  } catch (error) {
+    ElMessage.error(error.message);
   }
 };
 
-// 提交表单
 const handleSubmit = async () => {
   formRef.value?.validate(async (valid) => {
     if (valid) {
-      if (isEdit.value) {
-        const { error } = await supabase
-          .from("menus")
-          .update({
-            name: form.name,
-            path: form.path,
-            icon: form.icon,
-            parent_id: form.parent_id,
-            sort_order: form.sort_order,
-          })
-          .match({ id: form.id });
-
-        if (error) {
-          ElMessage.error("编辑失败");
-        } else {
-          await fetchMenus();
-          dialogVisible.value = false;
+      try {
+        if (isEdit.value) {
+          await updateMenuApi(form);
           ElMessage.success("编辑成功");
-        }
-      } else {
-        const { error } = await supabase.from("menus").insert([
-          {
-            name: form.name,
-            path: form.path,
-            icon: form.icon,
-            parent_id: form.parent_id,
-            sort_order: form.sort_order,
-          },
-        ]);
-
-        if (error) {
-          ElMessage.error("添加失败");
         } else {
-          await fetchMenus();
-          dialogVisible.value = false;
+          await addMenuApi(form);
           ElMessage.success("添加成功");
         }
+        await fetchMenus();
+        dialogVisible.value = false;
+      } catch (error) {
+        ElMessage.error(error.message);
       }
     }
   });
 };
-
 onMounted(fetchMenus);
 </script>
 
-<style scoped lang="scss">
+<!-- <style scoped lang="scss">
 .menu-manage {
   padding: 20px;
   .el-button {
     margin-bottom: 10px;
   }
 }
-</style>
+</style> -->

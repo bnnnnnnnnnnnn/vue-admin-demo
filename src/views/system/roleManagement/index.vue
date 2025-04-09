@@ -1,194 +1,232 @@
 <template>
-  <div>
-    <el-button @click="createRole" type="primary">新增角色</el-button>
-    <el-table :data="roles" stripe>
-      <el-table-column label="角色名称" prop="name" />
-      <el-table-column label="描述" prop="description" />
-      <el-table-column label="操作">
-        <template v-slot="scope">
-          <el-button @click="editRole(scope.row)" size="mini">编辑</el-button>
-          <el-button @click="deleteRole(scope.row)" size="mini" type="danger"
+  <el-card>
+    <!-- 顶部操作栏 -->
+    <el-button type="primary" @click="openAddRoleDialog">新增角色</el-button>
+
+    <!-- 角色表格 -->
+    <el-table :data="roles" class="mt-[20px]"  border>
+      <el-table-column type="index" label="序号" width="80" align="center"></el-table-column>
+      <el-table-column prop="name" label="角色名称" align="center"></el-table-column>
+      <el-table-column prop="description" label="角色信息" align="center"></el-table-column>
+      <el-table-column label="操作" align="center">
+        <template #default="{ row }">
+          <el-button
+            type="primary"
+            size="small"
+            @click="openEditRoleDialog(row)"
+            >编辑</el-button
+          >
+          <el-button
+            type="success"
+            size="small"
+            @click="openPermissionDialog(row)"
+            >权限</el-button
+          >
+          <el-button type="danger" size="small" @click="deleteRole(row.id)"
             >删除</el-button
           >
         </template>
       </el-table-column>
     </el-table>
 
-    <!-- 新增/编辑角色弹窗 -->
-    <el-dialog v-model="roleDialogVisible" title="角色管理">
-      <el-form :model="currentRole">
-        <el-form-item label="角色名称">
-          <el-input v-model="currentRole.name" />
-        </el-form-item>
-        <el-form-item label="角色描述">
-          <el-input v-model="currentRole.description" />
-        </el-form-item>
-        <el-form-item label="分配权限">
-          <el-button>权限</el-button>
-        </el-form-item>
-        <!-- <el-form-item label="分配权限">
-          <el-checkbox-group v-model="selectedPermissions">
-            <el-checkbox
-              v-for="perm in permissions"
-              :key="perm.id"
-              :label="perm.id"
-            >
-              {{ perm.name }}
-            </el-checkbox>
-          </el-checkbox-group>
-        </el-form-item> -->
-      </el-form>
+    <!-- 角色权限弹窗 -->
+    <el-dialog v-model="dialogVisible" title="角色权限管理">
+      <el-transfer
+        v-model="selectedMenus"
+        :data="menus"
+        :props="{ key: 'key', label: 'label' }"
+      ></el-transfer>
+
       <template #footer>
-        <el-button @click="roleDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveRole">保存</el-button>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="savePermissions">确定</el-button>
       </template>
     </el-dialog>
-  </div>
+
+    <!-- 新增/编辑角色弹窗 -->
+    <el-dialog
+      v-model="roleDialogVisible"
+      :title="isEditMode ? '编辑角色' : '新增角色'"
+    >
+      <el-form :model="roleForm" ref="roleFormRef" label-width="80px">
+        <el-form-item label="角色名称" prop="name">
+          <el-input
+            v-model="roleForm.name"
+            placeholder="请输入角色名称"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="角色名称" prop="description">
+          <el-input
+            v-model="roleForm.description"
+            placeholder="请输入角色名称"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="菜单权限">
+          <el-button type="primary" @click="openRolePermissionDialog"
+            >选择权限</el-button
+          >
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="roleDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitRole">{{
+          isEditMode ? "保存" : "新增"
+        }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 角色权限选择弹窗（新增/编辑） -->
+    <el-dialog v-model="rolePermissionDialogVisible" title="选择菜单权限">
+      <el-transfer
+        v-model="roleSelectedMenus"
+        :data="menus"
+        :props="{ key: 'key', label: 'label' }"
+      ></el-transfer>
+
+      <template #footer>
+        <el-button @click="rolePermissionDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmRolePermissions"
+          >确定</el-button
+        >
+      </template>
+    </el-dialog>
+  </el-card>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import supabase from "@/services/supabase";
+import {
+  getRoles,
+  getRoleMenus,
+  updateRoleMenus,
+  addRole,
+  updateRole,
+  deleteRoleById,
+} from "@/api/system/roles";
+import {fetchMenusApi} from "@/api/system/menu";
 
-const roles = ref<any[]>([]); // 角色列表
-const permissions = ref<any[]>([]); // 权限列表
+
+// 角色和菜单数据
+const roles = ref<any[]>([]);
+const menus = ref<{ key: number; label: string }[]>([]);
+const selectedMenus = ref<number[]>([]);
+
+// 角色权限弹窗
+const dialogVisible = ref(false);
+const selectedRole = ref<number | null>(null);
+
+// 新增/编辑角色弹窗
 const roleDialogVisible = ref(false);
-const currentRole = ref<{
-  id?: number | null;
-  name: string;
-  description: string;
-}>({
-  id: null,
-  name: "",
-  description: "",
-});
-const selectedPermissions = ref<Array<string | number>>([]); // 选中的权限ID数组
+const rolePermissionDialogVisible = ref(false);
+const isEditMode = ref(false);
+const roleForm = ref<{ id?: number; name: string;description:string }>({ name: "",description:'' });
+const roleSelectedMenus = ref<number[]>([]);
 
-/** 获取角色列表 */
-const fetchRoles = async () => {
-  const { data, error } = await supabase.from("roles").select();
-  if (error) {
-    ElMessage.error("获取角色失败");
-    return;
-  }
+// 加载角色列表
+const loadRoles = async () => {
+  const data = await getRoles();
   roles.value = data;
 };
 
-/** 获取权限列表 */
-const fetchPermissions = async () => {
-  const { data, error } = await supabase.from("permissions").select();
-  if (error) {
-    ElMessage.error("获取权限失败");
-    return;
-  }
-  permissions.value = data;
+// 加载菜单列表
+const loadMenus = async () => {
+  const data = await fetchMenusApi();
+  menus.value = data.map((item) => ({
+    key: item.id,
+    label: item.name,
+  }));
 };
 
-/** 获取角色的权限 */
-const fetchRolePermissions = async (roleId: number) => {
-  const { data, error } = await supabase
-    .from("role_permissions")
-    .select("permission_id")
-    .eq("role_id", roleId);
-  if (error) {
-    ElMessage.error("获取角色权限失败");
-    return;
-  }
-  selectedPermissions.value = data.map((item) => item.permission_id);
+// 打开角色权限弹窗
+const openPermissionDialog = async (role: any) => {
+  selectedRole.value = role.id;
+  const data = await getRoleMenus(role.id);
+  selectedMenus.value = data.map((menu) => menu.menu_id);
+  dialogVisible.value = true;
 };
 
-/** 点击新增角色按钮 */
-const createRole = () => {
-  currentRole.value = { id: null, name: "", description: "" };
-  selectedPermissions.value = [];
+// 保存角色权限
+const savePermissions = async () => {
+  if (selectedRole.value === null) return;
+  await updateRoleMenus(selectedRole.value, selectedMenus.value);
+  ElMessage.success("权限保存成功！");
+  dialogVisible.value = false;
+};
+
+// 打开新增角色弹框
+const openAddRoleDialog = () => {
+  roleForm.value = { name: "", description:''};
+  roleSelectedMenus.value = [];
+  isEditMode.value = false;
   roleDialogVisible.value = true;
 };
 
-/** 点击编辑角色按钮 */
-const editRole = async (role: any) => {
-  currentRole.value = { ...role };
-  await fetchRolePermissions(role.id); // 获取该角色的权限
+// 打开编辑角色弹框
+const openEditRoleDialog = async (role: any) => {
+  roleForm.value = { id: role.id, name: role.name ,description:role.description};
+  const data = await getRoleMenus(role.id);
+  roleSelectedMenus.value = data.map((menu) => menu.menu_id);
+  isEditMode.value = true;
   roleDialogVisible.value = true;
 };
 
-/** 删除角色 */
-const deleteRole = async (role: any) => {
-  try {
-    await ElMessageBox.confirm("确认删除该角色吗？", "提示", {
-      type: "warning",
+// 打开角色的权限穿梭框弹窗
+const openRolePermissionDialog = () => {
+  rolePermissionDialogVisible.value = true;
+};
+
+// 确认角色的权限
+const confirmRolePermissions = () => {
+  rolePermissionDialogVisible.value = false;
+};
+
+// 提交新增/编辑角色
+const submitRole = async () => {
+  if (!roleForm.value.name.trim()) {
+    ElMessage.warning("请输入角色名称！");
+    return;
+  }
+
+  if (isEditMode.value) {
+    // 编辑角色
+    await updateRole(roleForm.value.id!, roleForm.value.name, roleForm.value.description);
+    await updateRoleMenus(roleForm.value.id!, roleSelectedMenus.value);
+    ElMessage.success("角色更新成功！");
+  } else {
+    // 新增角色
+    const newRole = await addRole(roleForm.value.name,roleForm.value.description);
+    if (newRole) {
+      await updateRoleMenus(newRole.id, roleSelectedMenus.value);
+      ElMessage.success("角色添加成功！");
+    }
+  }
+
+  roleDialogVisible.value = false;
+  loadRoles();
+};
+
+// 删除角色
+const deleteRole = async (roleId: number) => {
+  ElMessageBox.confirm("确定删除该角色吗？", "提示", {
+    confirmButtonText: "删除",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(async () => {
+      await deleteRoleById(roleId);
+      ElMessage.success("角色删除成功！");
+      loadRoles();
+    })
+    .catch(() => {
+      ElMessage.info("取消删除");
     });
-    await supabase.from("roles").delete().match({ id: role.id });
-    await supabase
-      .from("role_permissions")
-      .delete()
-      .match({ role_id: role.id }); // 删除角色的权限关联
-    fetchRoles();
-  } catch (error) {
-    // Handle error
-  }
 };
 
-/** 保存角色（新增或更新） */
-const saveRole = async () => {
-  let roleId = currentRole.value.id;
-
-  // 1. 新增/更新角色
-  try {
-    if (!roleId) {
-      //移出id属性，因为新增时不需要id属性
-      delete currentRole.value.id;
-
-      const { data, error } = await supabase
-        .from("roles")
-        .insert([currentRole.value])
-        .select()
-        .single();
-      if (error) {
-        console.error("创建角色失败:", error.message); // 打印错误信息
-        ElMessage.error("创建角色失败");
-        return;
-      }
-      roleId = data.id;
-    } else {
-      const { error } = await supabase
-        .from("roles")
-        .update(currentRole.value)
-        .match({ id: roleId });
-      if (error) {
-        console.error("更新角色失败:", error.message); // 打印错误信息
-        ElMessage.error("更新角色失败");
-        return;
-      }
-    }
-
-    // 2. 更新角色的权限2222    await supabase.from("role_permissions").delete().match({ role_id: roleId }); // 先清除旧权限
-    if (selectedPermissions.value.length > 0) {
-      const rolePermissions = selectedPermissions.value.map((permId) => ({
-        role_id: roleId,
-        permission_id: permId,
-      }));
-      const { error } = await supabase
-        .from("role_permissions")
-        .insert(rolePermissions);
-      if (error) {
-        console.error("更新角色权限失败:", error.message); // 打印错误信息
-        ElMessage.error("更新角色权限失败");
-        return;
-      }
-    }
-
-    ElMessage.success("角色保存成功");
-    roleDialogVisible.value = false;
-    fetchRoles(); // 刷新角色列表
-  } catch (err) {
-    console.error("未知错误:", err); // 打印未知错误
-    ElMessage.error("保存角色时发生未知错误");
-  }
-};
-
+// 初始化加载数据
 onMounted(() => {
-  fetchRoles();
-  fetchPermissions();
+  loadRoles();
+  loadMenus();
 });
 </script>
