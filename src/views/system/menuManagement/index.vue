@@ -1,6 +1,7 @@
 <script setup lang="ts" name="menu">
-import { ref, reactive, onMounted } from "vue";
-import type {MenuItem} from '@/api/system/type'
+import { ref, reactive, onMounted, markRaw } from "vue";
+import type { MenuItem } from "@/api/system/type";
+import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 import {
   ElMessage,
   ElMessageBox,
@@ -116,20 +117,22 @@ const handleAdd = () => {
 // 编辑菜单
 const handleEdit = (item: MenuItem) => {
   isEdit.value = true;
+  // 去掉children
+  delete item.children;
   Object.assign(form, item);
   dialogVisible.value = true;
 };
 
 const fetchMenus = async () => {
   try {
-    loading.value=true // 加載中
+    loading.value = true; // 加載中
     const data = await fetchMenusApi();
     menuList.value = formatMenus(data);
     menuOptions.value = filterMenuOptions(data);
-  } catch (error:any) {
+  } catch (error: any) {
     ElMessage.error(error.message);
-  }finally{
-    loading.value=false
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -138,7 +141,7 @@ const handleDelete = async (id: number) => {
     await deleteMenuApi(id);
     menuList.value = menuList.value.filter((menu) => menu.id !== id);
     ElMessage.success("删除成功");
-  } catch (error:any) {
+  } catch (error: any) {
     ElMessage.error(error.message);
   }
 };
@@ -146,7 +149,7 @@ const handleDelete = async (id: number) => {
 const handleStatusChange = async (row: MenuItem) => {
   try {
     await updateMenuStatusApi(row.id as number, row.hidden);
-  } catch (error:any) {
+  } catch (error: any) {
     ElMessage.error(error.message);
   }
 };
@@ -154,7 +157,7 @@ const handleStatusChange = async (row: MenuItem) => {
 const handleSortChange = async (row: MenuItem) => {
   try {
     await updateMenuSortOrderApi(row.id as number, row.sort_order);
-  } catch (error:any) {
+  } catch (error: any) {
     ElMessage.error(error.message);
   }
 };
@@ -172,13 +175,35 @@ const handleSubmit = async () => {
         }
         await fetchMenus();
         dialogVisible.value = false;
-      } catch (error:any) {
+      } catch (error: any) {
         ElMessage.error(error.message);
       }
     }
   });
 };
-onMounted(fetchMenus);
+// 修改图标相关的代码
+const iconDialogVisible = ref(false);
+const icons = ref<any[]>([]);
+
+onMounted(() => {
+  fetchMenus();
+  // 使用 markRaw 处理图标组件
+  icons.value = Object.entries(ElementPlusIconsVue)
+    .filter(([key]) => key !== 'default')
+    .map(([name, component]) => [name, markRaw(component)]);
+});
+
+// 修改图标选择处理函数
+const handleSelectIcon = ([iconName]: [string, any]) => {
+  form.icon = iconName;
+  iconDialogVisible.value = false;
+};
+
+// 打开图标选择器
+const openIconSelector = () => {
+  iconDialogVisible.value = true;
+};
+// onMounted(fetchMenus);
 </script>
 
 <template>
@@ -236,7 +261,13 @@ onMounted(fetchMenus);
           <el-input v-model="form.name" />
         </el-form-item>
         <el-form-item label="图标" prop="icon">
-          <el-input v-model="form.icon" />
+          <div class="flex items-center gap-2">
+            <el-input v-model="form.icon" readonly />
+            <el-button @click="openIconSelector">选择图标</el-button>
+            <el-icon v-if="form.icon" class="text-xl">
+              <component :is="form.icon" />
+            </el-icon>
+          </div>
         </el-form-item>
         <el-form-item label="路由路径" prop="path">
           <el-input v-model="form.path" />
@@ -271,7 +302,65 @@ onMounted(fetchMenus);
         <el-button type="primary" @click="handleSubmit">确认</el-button>
       </template>
     </el-dialog>
+
+     <!-- 修改图标选择弹窗的内容 -->
+  <el-dialog title="选择图标" v-model="iconDialogVisible" width="800px">
+    <div class="icon-grid">
+      <div
+        v-for="[iconName, comp] in icons"
+        :key="iconName"
+        class="icon-item"
+        @click="handleSelectIcon([iconName, comp])"
+      >
+        <el-icon>
+          <component :is="comp" />
+        </el-icon>
+        <span>{{ iconName }}</span>
+      </div>
+    </div>
+  </el-dialog>
   </el-card>
 </template>
+<style scoped>
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 12px;
+  padding: 16px;
+  max-height: 460px;
+  overflow-y: auto;
+}
 
+.icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-height: 80px;
+}
 
+.icon-item:hover {
+  background-color: #f5f7fa;
+  border-color: #409eff;
+  color: #409eff;
+}
+
+.icon-item .el-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.icon-item span {
+  font-size: 10px;
+  text-align: center;
+  word-break: break-all;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>
