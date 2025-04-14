@@ -66,7 +66,7 @@ export const useMenuStore = defineStore("menu", () => {
         id: menu.id,
         name: menu.name,
         path: menu.path,
-        icon: markRaw(iconMap[menu.icon] || Tools), // **使用 markRaw 避免组件变为响应式**
+        icon: menu.icon, 
         parent_id: menu.parent_id,
         hidden: menu.hidden,
         children: menu.children || [],
