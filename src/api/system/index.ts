@@ -1,8 +1,8 @@
 import supabase from "@/services/supabase";
-import type { menus, User,Role } from "./type";
+import type { menus, User,Role } from "@/api/system/type";
 
 //菜单管理
-/*
+/**
  * 获取所有菜单
  * @returns {Promise<any[]>} 菜单列表
  */
@@ -73,25 +73,26 @@ export const getUsers = async (page = 1, perPage = 10): Promise<User[]> => {
 //   if (error) throw error;
 // };
 
-/**
- * 删除用户
- */
-export const deleteUser = async (id: string) => {
-  const { error } = await supabase.auth.admin.deleteUser(id);
-  if (error) throw error;
-};
+// /**
+//  * 删除用户
+//  */
+// export const deleteUser = async (id: string) => {
+//   const { error } = await supabase.auth.admin.deleteUser(id);
+//   if (error) throw error;
+// };
 
 
-/**
- * 修改密码 更新
- * 
- */
-export const updateAccounts = async (account: User)=>{
-  const { data, error } = await supabase.auth.updateUser({
-    email: account.email, // 使用用户名作为email
-    password: account.password,
-  })
-  if (error) throw error;
-  return data || [];
-}
+// /**
+//  * 修改密码 更新
+//  * 
+//  */
+// export const updateAccounts = async (account: User)=>{
+
+//   const { data, error } = await supabase.auth.updateUser({
+//     email: account.email, // 使用用户名作为email
+//     password: account.password,
+//   })
+//   if (error) throw error;
+//   return data || [];
+// }
 

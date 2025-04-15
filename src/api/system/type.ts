@@ -2,7 +2,7 @@ export type menus = {
   id: number | null;
   name: string;
   path: string;
-  redirect:string|null;
+  redirect: string | null;
   component?: string;
   icon?: string;
   parent_id?: number | null;
@@ -12,10 +12,12 @@ export type menus = {
 };
 
 export interface User {
-  id: string;
-  email: string;
+  id?: string;
+  email?: string;
+  phone?: string;
   role?: [];
-  password?: string; // 存储在 user_metadata 里
+  password?: string; 
+  description?: string; // 用户详情
 }
 
 export interface Role {
@@ -24,10 +26,8 @@ export interface Role {
   [key: string]: any;
 }
 
-
-
 export interface MenuItem {
-  id: number|null;
+  id: number | null;
   name: string;
   path: string;
   redirect: string | null;
