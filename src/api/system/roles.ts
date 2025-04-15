@@ -65,8 +65,7 @@ export const deleteRoleById = async (roleId: number) => {
   const { error } = await supabase.from("roles").delete().eq("id", roleId);
 
   if (error) {
-    console.error("删除角色失败:", error.message);
-    return false;
+    throw new Error(`删除角色失败: ${error.message}`);
   }
 
   return true;
