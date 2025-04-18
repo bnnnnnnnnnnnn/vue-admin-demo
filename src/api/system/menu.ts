@@ -26,9 +26,23 @@ export const updateMenuApi = async (menu: MenuItem) => {
 
 // 删除菜单
 export const deleteMenuApi = async (id: number) => {
-  const { error } = await supabase.from("menus").delete().match({ id });
-  if (error) throw new Error("删除失败");
+  // 先删除 role_menus 中所有关联该菜单的记录
+  const { error: roleMenuError } = await supabase
+    .from("role_menus")
+    .delete()
+    .eq("menu_id", id);
+
+  if (roleMenuError) throw new Error("删除菜单关联权限失败");
+
+  // 然后删除菜单本身
+  const { error: menuError } = await supabase
+    .from("menus")
+    .delete()
+    .match({ id });
+
+  if (menuError) throw new Error("删除菜单失败");
 };
+
 
 // 更新菜单状态
 export const updateMenuStatusApi = async (id: number, hidden: boolean) => {

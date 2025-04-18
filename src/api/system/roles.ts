@@ -61,12 +61,28 @@ export const updateRole = async (roleId: number, roleName: string,roleDescriptio
 };
 
 // 删除角色
+// 硬删除角色及其菜单权限
 export const deleteRoleById = async (roleId: number) => {
-  const { error } = await supabase.from("roles").delete().eq("id", roleId);
+  // 1. 删除 role_menus 中关联的权限
+  const { error: menuLinkError } = await supabase
+    .from("role_menus")
+    .delete()
+    .eq("role_id", roleId);
 
-  if (error) {
-    throw new Error(`删除角色失败: ${error.message}`);
+  if (menuLinkError) {
+    throw new Error(`删除角色菜单关联失败: ${menuLinkError.message}`);
+  }
+
+  // 2. 删除 roles 表中的角色
+  const { error: roleError } = await supabase
+    .from("roles")
+    .delete()
+    .eq("id", roleId);
+
+  if (roleError) {
+    throw new Error(`删除角色失败: ${roleError.message}`);
   }
 
   return true;
 };
+
