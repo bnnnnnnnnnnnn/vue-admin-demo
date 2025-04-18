@@ -138,11 +138,27 @@ const fetchMenus = async () => {
 
 const handleDelete = async (id: number) => {
   try {
+    // 弹出确认框
+    await ElMessageBox.confirm(
+      "确定要删除这个菜单吗？删除后不可恢复哦！",
+      "提示",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      }
+    );
+
+    // 用户点击确定后才会执行下面的删除操作
     await deleteMenuApi(id);
-    menuList.value = menuList.value.filter((menu) => menu.id !== id);
+    // menuList.value = menuList.value.filter((menu) => menu.id !== id);
+    await fetchMenus();
     ElMessage.success("删除成功");
   } catch (error: any) {
-    ElMessage.error(error.message);
+    // 如果是取消确认，不提示错误
+    if (error !== "cancel") {
+      ElMessage.error(error.message || "删除失败");
+    }
   }
 };
 
@@ -189,7 +205,7 @@ onMounted(() => {
   fetchMenus();
   // 使用 markRaw 处理图标组件
   icons.value = Object.entries(ElementPlusIconsVue)
-    .filter(([key]) => key !== 'default')
+    .filter(([key]) => key !== "default")
     .map(([name, component]) => [name, markRaw(component)]);
 });
 
@@ -303,22 +319,22 @@ const openIconSelector = () => {
       </template>
     </el-dialog>
 
-     <!-- 修改图标选择弹窗的内容 -->
-  <el-dialog title="选择图标" v-model="iconDialogVisible" width="800px">
-    <div class="icon-grid">
-      <div
-        v-for="[iconName, comp] in icons"
-        :key="iconName"
-        class="icon-item"
-        @click="handleSelectIcon([iconName, comp])"
-      >
-        <el-icon>
-          <component :is="comp" />
-        </el-icon>
-        <span>{{ iconName }}</span>
+    <!-- 修改图标选择弹窗的内容 -->
+    <el-dialog title="选择图标" v-model="iconDialogVisible" width="800px">
+      <div class="icon-grid">
+        <div
+          v-for="[iconName, comp] in icons"
+          :key="iconName"
+          class="icon-item"
+          @click="handleSelectIcon([iconName, comp])"
+        >
+          <el-icon>
+            <component :is="comp" />
+          </el-icon>
+          <span>{{ iconName }}</span>
+        </div>
       </div>
-    </div>
-  </el-dialog>
+    </el-dialog>
   </el-card>
 </template>
 <style scoped>
