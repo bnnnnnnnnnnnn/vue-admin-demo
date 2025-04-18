@@ -3,15 +3,6 @@ import { ref } from "vue";
 import useUserStore from "@/stores/modules/user";
 import { reqMenuList } from "@/api/user/index";
 import type { menus } from "@/api/system/type";
-import { markRaw } from "vue";
-import { HomeFilled, Tools, Menu, UserFilled } from "@element-plus/icons-vue";
-
-const iconMap: Record<string, any> = {
-  home: markRaw(HomeFilled),
-  settings: markRaw(Tools),
-  menu: markRaw(Menu),
-  role: markRaw(UserFilled),
-};
 
 export const useMenuStore = defineStore("menu", () => {
   const menuList = ref<menus[]>([]);
