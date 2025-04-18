@@ -122,6 +122,39 @@ const handleEdit = (item: MenuItem) => {
   Object.assign(form, item);
   dialogVisible.value = true;
 };
+// 添加子菜单
+const handleAddSubMenu = (parent: MenuItem) => {
+  isEdit.value = false;
+  Object.assign(form, {
+    id: 0,
+    name: "",
+    path: "",
+    redirect: "",
+    component: "",
+    icon: "",
+    parent_id: parent.id,
+    hidden: true,
+    sort_order: 0,
+  });
+  dialogVisible.value = true;
+};
+// 添加按钮权限
+const handleAddButtonPermission = (parent: MenuItem) => {
+  isEdit.value = false;
+  Object.assign(form, {
+    id: 0,
+    name: "",
+    path: "",
+    redirect: "",
+    component: "",
+    icon: "",
+    parent_id: parent.id,
+    hidden: true,
+    sort_order: 0,
+  });
+  dialogVisible.value = true;
+};
+
 
 const fetchMenus = async () => {
   try {
@@ -256,14 +289,26 @@ const openIconSelector = () => {
           />
         </template>
       </el-table-column>
-      <el-table-column label="操作" :fit="true">
-        <template #default="{ row }">
+      <el-table-column label="操作" align="center" width="400">
+        <template #default="{ row }" >
+           <!-- 添加子菜单按钮 -->
+           <el-button size="small" type="primary" @click="handleAddSubMenu(row)"
+            >添加子菜单</el-button
+          >
+          <!-- 添加按钮权限 -->
+          <el-button
+            size="small"
+            type="primary"
+            @click="handleAddButtonPermission(row)"
+            >添加按钮权限</el-button
+          >
           <el-button type="primary" size="small" @click="handleEdit(row)"
             >编辑</el-button
           >
-          <el-button size="small" type="danger" @click="handleDelete(row.id)">
-            删除
-          </el-button>
+          <el-button size="small" type="danger" @click="handleDelete(row.id)"
+            >删除</el-button
+          >
+         
         </template>
       </el-table-column>
     </el-table>
@@ -291,7 +336,7 @@ const openIconSelector = () => {
         <el-form-item label="重定向" prop="redirect">
           <el-input v-model="form.redirect" />
         </el-form-item>
-        <el-form-item label="组件路径" prop="path">
+        <el-form-item label="组件路径" prop="component">
           <el-input v-model="form.component" />
         </el-form-item>
 
