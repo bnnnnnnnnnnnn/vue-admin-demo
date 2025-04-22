@@ -1,111 +1,104 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import { usePermissionStore } from "@/stores/user/permissionStore";
 import useUserStore from "@/stores/modules/user";
 import { reqMenuList } from "@/api/user/index";
 import type { menus } from "@/api/system/type";
 
 export const useMenuStore = defineStore("menu", () => {
   const menuList = ref<menus[]>([]);
-  const routesList = ref<Partial<menus[]>>([]);
+  const routesList = ref<menus[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
-  // 初始化菜单,路由列表
-  const initMenus = async () => {
+  const permissionStore = usePermissionStore();
+
+  // ✅ 初始化菜单状态
+  const initMenus = () => {
     localStorage.removeItem("menuList");
     localStorage.removeItem("routesList");
+    permissionStore.clearPermissions();
+    menuList.value = [];
+    routesList.value = [];
   };
 
-  // 加载菜单,路由
+  // ✅ 加载菜单数据（自动缓存处理）
   const loadMenus = async () => {
-    // 如果菜单数据已经加载过且存在于 localStorage 中，就直接从 localStorage 获取
-    const storedMenus = localStorage.getItem("menuList");
-    if (storedMenus) {
-      // 从 localStorage 获取数据并解析
-      menuList.value = JSON.parse(storedMenus);
+    const cachedMenus = localStorage.getItem("menuList");
+    const cachedRoutes = localStorage.getItem("routesList");
+
+    if (cachedMenus && cachedRoutes) {
+      menuList.value = JSON.parse(cachedMenus);
+      routesList.value = JSON.parse(cachedRoutes);
       return;
     }
 
-    if (menuList.value.length > 0) return;
-    loading.value = true;
-    error.value = null;
-
     try {
-      const ids: number[] = useUserStore().roleIds || [];
-      if (ids.length === 0) return;
-      const menus = await reqMenuList(ids);
-      menuList.value = buildMenuTree(menus);
-      routesList.value = buildRouterTree(menus);
+      loading.value = true;
+      const roleIds = useUserStore().roleIds || [];
+      if (roleIds.length === 0) return;
 
-      // 存储菜单,路由数据到 localStorage
+      const allMenus = await reqMenuList(roleIds);
+
+      // 分类处理
+      const menus = allMenus.filter(item => item.type !== 2);
+      const permissions = allMenus.filter(item => item.type === 2).map(item => item.path);
+
+      // 构建菜单、路由、权限
+      menuList.value = buildTree(menus);
+      routesList.value = buildTree(menus, true);
+      permissionStore.setPermissions(permissions);
+
+      // 本地缓存
       localStorage.setItem("menuList", JSON.stringify(menuList.value));
       localStorage.setItem("routesList", JSON.stringify(routesList.value));
     } catch (err: any) {
-      error.value = err.message;
-      console.error(err.message);
+      error.value = err.message || "菜单加载失败";
     } finally {
       loading.value = false;
     }
   };
 
-  // 构建菜单树
-  const buildMenuTree = (menus: any[]): menus[] => {
-    const menuMap = new Map<number, menus>();
+  // ✅ 通用构建树结构（菜单 + 路由）
+  const buildTree = (list: any[], isRoute = false): menus[] => {
+    const map = new Map<number, menus>();
     const tree: menus[] = [];
-    menus.forEach((menu) => {
-      if (menu.type === 2) return;
-      const menuItem: Partial<menus> = {
-        id: menu.id,
-        name: menu.name,
-        path: menu.path,
-        icon: menu.icon, 
-        parent_id: menu.parent_id,
-        hidden: menu.hidden,
-        children: menu.children || [],
+
+    list.forEach(item => {
+      const node: Partial<menus> = {
+        id: item.id,
+        name: item.name,
+        path: isRoute
+          ? item.path.match(/\/([^\/]*)$/)?.[1] || "/"
+          : item.path,
+        component: item.component,
+        redirect: item.redirect,
+        parent_id: item.parent_id,
+        icon: item.icon,
+        hidden: item.hidden,
+        children: [],
       };
-      menuMap.set(menu.id, menuItem as menus);
+      map.set(item.id, node as menus);
     });
 
-    menus.forEach((menu) => {
-      if (menu.type === 2) return;
-      const parent = menuMap.get(menu.parent_id);
+    list.forEach(item => {
+      const parent = map.get(item.parent_id);
       if (parent) {
-        parent.children?.push(menuMap.get(menu.id)!);
+        parent.children?.push(map.get(item.id)!);
       } else {
-        tree.push(menuMap.get(menu.id)!);
-      }
-    });
-
-    return tree;
-  };
-  // 构建路由树
-  const buildRouterTree = (menus: any[]): menus[] => {
-    const menuMap = new Map<number, menus>();
-    const tree: menus[] = [];
-    menus.forEach((menu) => {
-      const menuItem: Partial<menus> = {
-        id: menu.id,
-        name: menu.name,
-        path: menu.path.match(/\/([^\/]*)$/)?.[1]||'/',
-        redirect: menu.redirect,
-        parent_id: menu.parent_id,
-        component: menu.component,
-        children: menu.children || [],
-      };
-      menuMap.set(menu.id, menuItem as menus);
-    });
-
-    menus.forEach((menu) => {
-      const parent = menuMap.get(menu.parent_id);
-      if (parent) {
-        parent.children?.push(menuMap.get(menu.id)!);
-      } else {
-        tree.push(menuMap.get(menu.id)!);
+        tree.push(map.get(item.id)!);
       }
     });
 
     return tree;
   };
 
-  return { menuList, routesList, loading, error, loadMenus, initMenus };
+  return {
+    menuList,
+    routesList,
+    loading,
+    error,
+    initMenus,
+    loadMenus,
+  };
 });
