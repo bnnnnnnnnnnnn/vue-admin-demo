@@ -1,15 +1,27 @@
-export type menus = {
-  id: number | null;
+export interface MenuBase  {
+  id?: number | null;
+  type: number;
   name: string;
   path: string;
   redirect: string | null;
-  component?: string;
+  component?: string| null;
   icon?: string;
   parent_id?: number | null;
   hidden: boolean;
   sort_order?: number;
   children?: menus[];
 };
+
+export interface menus extends MenuBase {
+  children?: menus[];
+}
+
+export interface MenuItem extends MenuBase {
+  component: string | null;
+  icon: string;
+  parent_id: number | null;
+  sort_order: number;
+}
 
 export interface User {
   id?: string;
@@ -26,14 +38,4 @@ export interface Role {
   [key: string]: any;
 }
 
-export interface MenuItem {
-  id: number | null;
-  name: string;
-  path: string;
-  redirect: string | null;
-  component: string | null;
-  icon: string;
-  parent_id: number | null;
-  hidden: boolean;
-  sort_order: number;
-}
+
