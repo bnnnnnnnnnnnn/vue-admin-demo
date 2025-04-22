@@ -80,7 +80,7 @@ const buildTree = (flatList: MenuItem[]): MenuItem[] => {
   const roots: MenuItem[] = [];
 
   flatList.forEach((item) => {
-    map.set(item.id, { ...item, id: String(item.id), children: [] });
+    map.set(item.id as number, { ...item, id: String(item.id), children: [] });
   });
 
   map.forEach((item) => {

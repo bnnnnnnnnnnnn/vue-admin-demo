@@ -14,12 +14,15 @@ const icons = ref<Record<string, any>>({});
 onMounted(() => {
   menuStore.loadMenus();
   // 初始化图标组件，使用 markRaw 处理
-  icons.value = Object.entries(ElementPlusIconsVue).reduce((acc, [key, component]) => {
-    if (key !== 'default') {
-      acc[key] = markRaw(component);
-    }
-    return acc;
-  }, {} as Record<string, any>);
+  icons.value = Object.entries(ElementPlusIconsVue).reduce(
+    (acc, [key, component]) => {
+      if (key !== "default") {
+        acc[key] = markRaw(component);
+      }
+      return acc;
+    },
+    {} as Record<string, any>
+  );
 });
 
 // 获取图标组件
@@ -39,12 +42,14 @@ const handleLink = (path: string) => {
   <div class="menu menu-md bg-base-200 rounded-box w-full h-full">
     <template v-for="menu in menuStore.menuList" :key="menu?.id">
       <li
-        v-if="menu && !menu.hidden && (!menu.children || menu.children.length === 0)"
+        v-if="
+          menu && !menu.hidden && (!menu.children || menu.children.length === 0)
+        "
         :class="{ 'menu-active': activePath === menu.path }"
       >
         <p @click.stop="handleLink(menu.path)">
           <el-icon class="menu-icon">
-            <component :is="getIcon(menu.icon) || 'Menu'" />
+            <component :is="getIcon(menu?.icon ?? 'Menu')" />
           </el-icon>
           {{ menu.name }}
         </p>
@@ -54,7 +59,7 @@ const handleLink = (path: string) => {
         <details open>
           <summary>
             <el-icon class="menu-icon">
-              <component :is="getIcon(menu.icon) || 'Menu'" />
+              <component :is="getIcon(menu?.icon ?? 'Menu')" />
             </el-icon>
             {{ menu.name }}
           </summary>
@@ -65,7 +70,7 @@ const handleLink = (path: string) => {
             >
               <p @click.stop="handleLink(child.path)">
                 <el-icon class="menu-icon">
-                  <component :is="getIcon(child.icon) || 'Menu'" />
+                  <component :is="getIcon(child?.icon ?? 'Menu') || 'Menu'" />
                 </el-icon>
                 {{ child.name }}
               </p>
@@ -73,23 +78,27 @@ const handleLink = (path: string) => {
               <details v-if="child.children && child.children.length">
                 <summary>
                   <el-icon class="menu-icon">
-                    <component :is="getIcon(child.icon) || 'Menu'" />
+                    <component :is="getIcon(child?.icon ?? 'Menu')" />
                   </el-icon>
                   {{ child.name }}
                 </summary>
                 <ul>
-                  <li
+                  <template
                     v-for="subChild in child.children"
-                    v-if="subChild && !subChild.hidden"
-                    :class="{ 'menu-active': activePath === subChild.path }"
+                    :key="subChild.id"
                   >
-                    <p @click.stop="handleLink(subChild.path)">
-                      <el-icon class="menu-icon">
-                        <component :is="getIcon(subChild.icon) || 'Menu'" />
-                      </el-icon>
-                      {{ subChild.name }}
-                    </p>
-                  </li>
+                    <li
+                      v-if="subChild && !subChild.hidden"
+                      :class="{ 'menu-active': activePath === subChild.path }"
+                    >
+                      <p @click.stop="handleLink(subChild.path)">
+                        <el-icon class="menu-icon">
+                          <component :is="getIcon(subChild?.icon ?? 'Menu')" />
+                        </el-icon>
+                        {{ subChild.name }}
+                      </p>
+                    </li>
+                  </template>
                 </ul>
               </details>
             </li>
@@ -120,10 +129,10 @@ const handleLink = (path: string) => {
 }
 
 /* 调整菜单项的布局 */
-p, summary {
+p,
+summary {
   display: flex;
   align-items: center;
   padding: 8px;
 }
 </style>
-

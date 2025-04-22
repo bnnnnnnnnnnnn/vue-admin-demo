@@ -58,10 +58,14 @@ export const reqUserInfo = async (): Promise<any> => {
 */
 export const reqMenuList = async (roleIds: number[]): Promise<MenuItem[]> => {
   // 先查询 role_menus 表，获取当前角色的所有 menu_id
+  if (!Array.isArray(roleIds) || roleIds.length === 0) {
+    console.warn("未传入有效的角色 ID 数组");
+    return [];
+  }
   const { data: roleMenus, error: roleMenusError } = await supabase
     .from("role_menus")
     .select("menu_id")
-    .eq("role_id", roleIds);
+    .in("role_id", roleIds);
 
   if (roleMenusError) {
     console.error("获取角色菜单失败:", roleMenusError);

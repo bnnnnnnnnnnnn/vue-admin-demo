@@ -199,8 +199,8 @@ const handleSortChange = async (row: menus) => {
 };
 
 const handleSubmit = async () => {
-  formRef.value?.validate(async (valid) => {
-    if (valid) {
+  // formRef.value?.validate(async (valid) => {
+  //   if (valid) {
       try {
         if (isEdit.value) {
           await updateMenuApi(form);
@@ -215,8 +215,8 @@ const handleSubmit = async () => {
         ElMessage.error(error.message);
       }
     }
-  });
-};
+  // });
+// };
 // 修改图标相关的代码
 const iconDialogVisible = ref(false);
 const icons = ref<any[]>([]);

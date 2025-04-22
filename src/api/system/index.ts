@@ -14,15 +14,36 @@ export const getMenuList = async () => {
 };
 
 // 新增/编辑菜单
-export const saveMenu = async (data: menus) => {
-  if (data.id) {
-    // 编辑菜单
-    return supabase.from("menus").update(data).where({ id: data.id });
-  } else {
-    // 新增菜单
-    return supabase.from("menus").insert(data);
-  }
-};
+// export const saveMenu = async (data: menus) => {
+//   if (data.id) {
+//     // 编辑菜单
+//     return supabase.from("menus").update(data).where({ id: data.id });
+//   } else {
+//     // 新增菜单
+//     return supabase.from("menus").insert(data);
+//   }
+// };
+    // 新增/编辑菜单
+    export const saveMenu = async (data: menus) => {
+      if (data.id) {
+        const { data: resData, error } = await supabase
+          .from("menus")
+          .update(data)
+          .eq("id", data.id)
+          .select();
+    
+        if (error) throw error;
+        return resData;
+      } else {
+        const { data: resData, error } = await supabase
+          .from("menus")
+          .insert(data)
+          .select();
+    
+        if (error) throw error;
+        return resData;
+      }
+    };
 
 /**
  * 获取所有用户
