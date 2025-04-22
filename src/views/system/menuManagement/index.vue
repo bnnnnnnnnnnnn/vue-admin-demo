@@ -1,6 +1,6 @@
 <script setup lang="ts" name="menu">
 import { ref, reactive, onMounted, markRaw } from "vue";
-import type { MenuItem } from "@/api/system/type";
+import type { menus, MenuItem } from "@/api/system/type";
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 import {
   ElMessage,
@@ -32,12 +32,16 @@ const props = {
   children: "children",
   checkStrictly: true,
 };
-const menuList = ref<MenuItem[]>([]);
-const menuOptions = ref<MenuItem[]>([]); // Holds the menu options for cascading
+const menuList = ref<menus[]>([]);
+const menuOptions = ref<menus[]>([]); // Holds the menu options for cascading
 const formRef = ref<unknown>();
 const loading = ref<Boolean>(false);
-const form = reactive<MenuItem>({
+
+const dialogVisible = ref(false);
+const isEdit = ref(false);
+const createDefaultForm = (): MenuItem => ({
   id: null,
+  type: 1,
   name: "",
   path: "",
   redirect: "",
@@ -47,30 +51,36 @@ const form = reactive<MenuItem>({
   hidden: true,
   sort_order: 0,
 });
-const dialogVisible = ref(false);
-const isEdit = ref(false);
+const form = reactive<MenuItem>(createDefaultForm());
+// 重置表单
+const resetForm = () => {
+  Object.assign(form, createDefaultForm());
+};
 
 // 格式化菜单树形数据
-const formatMenus = (menus: MenuItem[]) => {
-  const map: { [key: number]: MenuItem } = {};
-  const result: MenuItem[] = [];
+const formatMenus = (menus: menus[]) => {
+  const map: { [key: number]: menus } = {};
+  const result: menus[] = [];
   menus.forEach((menu) => {
-    map[menu.id] = menu;
-    menu.children = [];
+    if (menu.id !== null) {
+      // 确保 menu.id 不为 null
+      map[menu.id as number] = menu;
+      menu.children = [];
+    }
   });
 
   menus.forEach((menu) => {
-    if (menu.parent_id && map[menu.parent_id]) {
+    if (menu.id && menu.parent_id && map[menu.parent_id]) {
       map[menu.parent_id].children?.push(map[menu.id]);
-    } else {
-      result.push(map[menu.id]);
+    } else if (menu.id !== null) {
+      result.push(map[menu.id as number]);
     }
   });
   return result;
 };
 
 // 过滤掉第三层的数据
-const filterMenuOptions = (menus: MenuItem[]) => {
+const filterMenuOptions = (menus: menus[]) => {
   //深拷贝
   const menusCopy = JSON.parse(JSON.stringify(menus));
   let res = formatMenus(menusCopy);
@@ -100,22 +110,13 @@ const handleCascaderChange = (value: any) => {
 // 新增菜单
 const handleAdd = () => {
   isEdit.value = false;
-  Object.assign(form, {
-    id: 0,
-    name: "",
-    path: "",
-    redirect: "",
-    component: "",
-    icon: "",
-    parent_id: null,
-    hidden: true,
-    sort_order: 0,
-  });
+  resetForm();
+  delete form.id;
   dialogVisible.value = true;
 };
 
 // 编辑菜单
-const handleEdit = (item: MenuItem) => {
+const handleEdit = (item: menus) => {
   isEdit.value = true;
   // 去掉children
   delete item.children;
@@ -123,38 +124,22 @@ const handleEdit = (item: MenuItem) => {
   dialogVisible.value = true;
 };
 // 添加子菜单
-const handleAddSubMenu = (parent: MenuItem) => {
+const handleAddSubMenu = (parent: menus) => {
   isEdit.value = false;
-  Object.assign(form, {
-    id: 0,
-    name: "",
-    path: "",
-    redirect: "",
-    component: "",
-    icon: "",
-    parent_id: parent.id,
-    hidden: true,
-    sort_order: 0,
-  });
+  resetForm();
+  delete form.id;
+  form.parent_id = parent.id as number;
   dialogVisible.value = true;
 };
 // 添加按钮权限
-const handleAddButtonPermission = (parent: MenuItem) => {
+const handleAddButtonPermission = (parent: menus) => {
   isEdit.value = false;
-  Object.assign(form, {
-    id: 0,
-    name: "",
-    path: "",
-    redirect: "",
-    component: "",
-    icon: "",
-    parent_id: parent.id,
-    hidden: true,
-    sort_order: 0,
-  });
+  resetForm();
+  delete form.id;
+  form.type = 2;
+  form.parent_id = parent.id as number;
   dialogVisible.value = true;
 };
-
 
 const fetchMenus = async () => {
   try {
@@ -195,7 +180,7 @@ const handleDelete = async (id: number) => {
   }
 };
 
-const handleStatusChange = async (row: MenuItem) => {
+const handleStatusChange = async (row: menus) => {
   try {
     await updateMenuStatusApi(row.id as number, row.hidden);
   } catch (error: any) {
@@ -203,9 +188,11 @@ const handleStatusChange = async (row: MenuItem) => {
   }
 };
 
-const handleSortChange = async (row: MenuItem) => {
+const handleSortChange = async (row: menus) => {
   try {
-    await updateMenuSortOrderApi(row.id as number, row.sort_order);
+    if (row.id) {
+      await updateMenuSortOrderApi(row.id, row.sort_order as number);
+    }
   } catch (error: any) {
     ElMessage.error(error.message);
   }
@@ -267,19 +254,19 @@ const openIconSelector = () => {
       :tree-props="{ children: 'children' }"
       fit
     >
-      <el-table-column prop="name" label="菜单名称" />
-      <el-table-column prop="path" label="路由路径" />
-      <el-table-column prop="redirect" label="重定向路径" />
-      <el-table-column prop="component" label="组件路径" />
-      <el-table-column prop="sort_order" label="排序" />
-      <el-table-column prop="icon" label="图标">
+      <el-table-column prop="name" label="菜单/权限名称" />
+      <el-table-column prop="path" label="路由路径/权限字段" />
+      <el-table-column prop="redirect" label="重定向路径"  />
+      <el-table-column prop="component" label="组件路径"  />
+      <el-table-column prop="sort_order" label="排序" align="center" />
+      <!-- <el-table-column prop="icon" label="图标">
         <template #default="{ row }">
           <el-icon v-if="row.icon">
             <component :is="row.icon" />
           </el-icon>
         </template>
-      </el-table-column>
-      <el-table-column label="是否隐藏">
+      </el-table-column> -->
+      <el-table-column label="是否隐藏" align="center">
         <template #default="{ row }">
           <el-switch
             v-model="row.hidden"
@@ -290,9 +277,9 @@ const openIconSelector = () => {
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="400">
-        <template #default="{ row }" >
-           <!-- 添加子菜单按钮 -->
-           <el-button size="small" type="primary" @click="handleAddSubMenu(row)"
+        <template #default="{ row }">
+          <!-- 添加子菜单按钮 -->
+          <el-button size="small" type="primary" @click="handleAddSubMenu(row)"
             >添加子菜单</el-button
           >
           <!-- 添加按钮权限 -->
@@ -308,20 +295,22 @@ const openIconSelector = () => {
           <el-button size="small" type="danger" @click="handleDelete(row.id)"
             >删除</el-button
           >
-         
         </template>
       </el-table-column>
     </el-table>
 
     <el-dialog
-      :title="isEdit ? '编辑菜单' : '新增菜单'"
+      :title="isEdit ? '编辑' : '新增'"
       v-model="dialogVisible"
     >
       <el-form ref="formRef" :model="form" label-width="80px">
-        <el-form-item label="菜单名称" prop="name">
+        <el-form-item  v-if="form.type === 1" label="菜单名称" prop="name">
           <el-input v-model="form.name" />
         </el-form-item>
-        <el-form-item label="图标" prop="icon">
+        <el-form-item v-else  label="权限名称" prop="name">
+          <el-input v-model="form.name" />
+        </el-form-item>
+        <el-form-item v-if="form.type === 1" label="图标" prop="icon">
           <div class="flex items-center gap-2">
             <el-input v-model="form.icon" readonly />
             <el-button @click="openIconSelector">选择图标</el-button>
@@ -330,20 +319,23 @@ const openIconSelector = () => {
             </el-icon>
           </div>
         </el-form-item>
-        <el-form-item label="路由路径" prop="path">
+        <el-form-item v-if="form.type === 1" label="路由路径" prop="path">
           <el-input v-model="form.path" />
         </el-form-item>
-        <el-form-item label="重定向" prop="redirect">
+        <el-form-item v-else label="权限字段" prop="path">
+          <el-input v-model="form.path" />
+        </el-form-item>
+        <el-form-item v-if="form.type === 1" label="重定向" prop="redirect">
           <el-input v-model="form.redirect" />
         </el-form-item>
-        <el-form-item label="组件路径" prop="component">
+        <el-form-item v-if="form.type === 1" label="组件路径" prop="component">
           <el-input v-model="form.component" />
         </el-form-item>
 
         <!-- Use el-cascader for parent menu selection -->
-        <el-form-item label="父菜单" prop="parent_id">
+        <el-form-item v-if="form.type === 1" label="父菜单" prop="parent_id">
           <el-cascader
-            v-model="form.parent_id"
+            v-model="form.parent_id as number"
             :options="menuOptions"
             :props="props"
             placeholder="选择父菜单"

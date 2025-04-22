@@ -53,6 +53,7 @@ export const useMenuStore = defineStore("menu", () => {
     const menuMap = new Map<number, menus>();
     const tree: menus[] = [];
     menus.forEach((menu) => {
+      if (menu.type === 2) return;
       const menuItem: Partial<menus> = {
         id: menu.id,
         name: menu.name,
@@ -66,6 +67,7 @@ export const useMenuStore = defineStore("menu", () => {
     });
 
     menus.forEach((menu) => {
+      if (menu.type === 2) return;
       const parent = menuMap.get(menu.parent_id);
       if (parent) {
         parent.children?.push(menuMap.get(menu.id)!);
