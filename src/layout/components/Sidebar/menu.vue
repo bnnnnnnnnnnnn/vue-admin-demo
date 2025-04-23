@@ -7,7 +7,7 @@ import { Menu } from "@element-plus/icons-vue";
 
 const router = useRouter();
 const menuStore = useMenuStore();
-const activePath = ref("");
+const activeId = ref<number|null>(null);
 
 // 注册所有图标组件
 const icons = ref<Record<string, any>>({});
@@ -31,10 +31,11 @@ const getIcon = (iconName: string) => {
 };
 
 // 路由跳转
-const handleLink = (path: string) => {
-  // console.log(path,'path');
-  activePath.value = path;
-  router.push(path);
+const handleLink = (item:any) => {
+  activeId.value = item.id;
+  if(item.path){
+    router.push(item.path);
+  }
 };
 </script>
 
@@ -45,9 +46,9 @@ const handleLink = (path: string) => {
         v-if="
           menu && !menu.hidden && (!menu.children || menu.children.length === 0)
         "
-        :class="{ 'menu-active': activePath === menu.path }"
+        :class="{ 'menu-active': activeId === menu.id }"
       >
-        <p @click.stop="handleLink(menu.path)">
+        <p @click.stop="handleLink(menu)">
           <el-icon class="menu-icon">
             <component :is="getIcon(menu?.icon ?? 'Menu')" />
           </el-icon>
@@ -66,9 +67,9 @@ const handleLink = (path: string) => {
           <ul>
             <li
               v-for="child in menu.children"
-              :class="{ 'menu-active': activePath === child.path }"
+              :class="{ 'menu-active': activeId === child.id }"
             >
-              <p @click.stop="handleLink(child.path)">
+              <p @click.stop="handleLink(child)">
                 <el-icon class="menu-icon">
                   <component :is="getIcon(child?.icon ?? 'Menu') || 'Menu'" />
                 </el-icon>
@@ -89,9 +90,9 @@ const handleLink = (path: string) => {
                   >
                     <li
                       v-if="subChild && !subChild.hidden"
-                      :class="{ 'menu-active': activePath === subChild.path }"
+                      :class="{ 'menu-active': activeId === subChild.id }"
                     >
-                      <p @click.stop="handleLink(subChild.path)">
+                      <p @click.stop="handleLink(subChild)">
                         <el-icon class="menu-icon">
                           <component :is="getIcon(subChild?.icon ?? 'Menu')" />
                         </el-icon>

@@ -48,7 +48,7 @@ const createDefaultForm = (): MenuItem => ({
   component: "",
   icon: "",
   parent_id: null,
-  hidden: true,
+  hidden: false,
   sort_order: 0,
 });
 const form = reactive<MenuItem>(createDefaultForm());
