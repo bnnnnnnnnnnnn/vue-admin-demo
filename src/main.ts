@@ -13,6 +13,7 @@ import App from "./App.vue";
 import router from "./router";
 import { addDynamicRoutes } from "@/router/components/dynamicRoutes";
 import { GET_TOKEN } from "@/utils/token";
+import { usePermissionStore } from '@/stores/user/permissionStore';
 
 const app = createApp(App);
 
@@ -21,6 +22,8 @@ app.use(pinia);
 app.use(ElementPlus);
 // 刷新持久化路由
 const token = GET_TOKEN();
+const permissionStore = usePermissionStore();
+permissionStore.loadPermissionsFromStorage();
 if (token) {
   addDynamicRoutes(router)
     .then(() => app.use(router).mount("#app"))

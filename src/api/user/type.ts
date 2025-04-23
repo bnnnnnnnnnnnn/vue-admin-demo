@@ -9,6 +9,7 @@ export interface loginFormPhone {
 }
 
 export interface MenuItem {
+  type: number;
   id: number;
   name: string;
   path: string;
