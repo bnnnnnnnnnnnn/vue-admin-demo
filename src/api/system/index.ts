@@ -1,17 +1,17 @@
-import supabase from "@/services/supabase";
-import type { menus, User,Role } from "@/api/system/type";
+import type { menus, User } from '@/api/system/type'
+import supabase from '@/services/supabase'
 
-//菜单管理
+// 菜单管理
 /**
  * 获取所有菜单
  * @returns {Promise<any[]>} 菜单列表
  */
-export const getMenuList = async () => {
+export async function getMenuList() {
   return supabase
-    .from("menus")
-    .select("*")
-    .order("sort_order", { ascending: true });
-};
+    .from('menus')
+    .select('*')
+    .order('sort_order', { ascending: true })
+}
 
 // 新增/编辑菜单
 // export const saveMenu = async (data: menus) => {
@@ -23,48 +23,51 @@ export const getMenuList = async () => {
 //     return supabase.from("menus").insert(data);
 //   }
 // };
-    // 新增/编辑菜单
-    export const saveMenu = async (data: menus) => {
-      if (data.id) {
-        const { data: resData, error } = await supabase
-          .from("menus")
-          .update(data)
-          .eq("id", data.id)
-          .select();
-    
-        if (error) throw error;
-        return resData;
-      } else {
-        const { data: resData, error } = await supabase
-          .from("menus")
-          .insert(data)
-          .select();
-    
-        if (error) throw error;
-        return resData;
-      }
-    };
+// 新增/编辑菜单
+export async function saveMenu(data: menus) {
+  if (data.id) {
+    const { data: resData, error } = await supabase
+      .from('menus')
+      .update(data)
+      .eq('id', data.id)
+      .select()
+
+    if (error)
+      throw error
+    return resData
+  }
+  else {
+    const { data: resData, error } = await supabase
+      .from('menus')
+      .insert(data)
+      .select()
+
+    if (error)
+      throw error
+    return resData
+  }
+}
 
 /**
  * 获取所有用户
  */
-export const getUsers = async (page = 1, perPage = 10): Promise<User[]> => {
+export async function getUsers(page = 1, perPage = 10): Promise<User[]> {
   const { data, error } = await supabase.auth.admin.listUsers({
     page,
     perPage,
-  });
+  })
 
   if (error) {
-    console.error("获取用户列表失败", error);
-    throw error;
+    console.error('获取用户列表失败', error)
+    throw error
   }
 
-  return data.users.map((user) => ({
+  return data.users.map(user => ({
     id: user.id,
-    email: user.email || "",
-    role: user.user_metadata?.role || "未分配",
-  }));
-};
+    email: user.email || '',
+    role: user.user_metadata?.role || '未分配',
+  }))
+}
 
 // /**
 //  * 创建用户
@@ -102,10 +105,9 @@ export const getUsers = async (page = 1, perPage = 10): Promise<User[]> => {
 //   if (error) throw error;
 // };
 
-
 // /**
 //  * 修改密码 更新
-//  * 
+//  *
 //  */
 // export const updateAccounts = async (account: User)=>{
 
@@ -116,4 +118,3 @@ export const getUsers = async (page = 1, perPage = 10): Promise<User[]> => {
 //   if (error) throw error;
 //   return data || [];
 // }
-

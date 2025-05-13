@@ -1,9 +1,9 @@
 // src/api/upload.js
-import supabase from "@/services/supabase";
+import supabase from '@/services/supabase'
 
 /**
  * 将上传的资源信息写入 Supabase
- * @param {Object} fileInfo - 上传成功的文件信息
+ * @param {object} fileInfo - 上传成功的文件信息
  * @param {string} fileInfo.name - 资源名称（无扩展名）
  * @param {string} fileInfo.url - OSS 文件地址
  * @param {string} fileInfo.type - MIME 类型
