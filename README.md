@@ -47,7 +47,6 @@ vue3-large-file-uploader/
 ├── README.md
 └── ...
 
-
 📚 未来计划（TODO）
  多文件批量上传
 

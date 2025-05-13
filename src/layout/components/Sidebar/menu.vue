@@ -1,42 +1,42 @@
 <script setup lang="ts" name="menu">
-import { onMounted, ref, markRaw } from "vue";
-import { useMenuStore } from "@/stores/user/menuRoutesStore";
-import { useRouter } from "vue-router";
-import * as ElementPlusIconsVue from "@element-plus/icons-vue";
-import { Menu } from "@element-plus/icons-vue";
+import { useMenuStore } from '@/stores/user/menuRoutesStore'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import { Menu } from '@element-plus/icons-vue'
+import { markRaw, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
-const menuStore = useMenuStore();
-const activeId = ref<number|null>(null);
+const router = useRouter()
+const menuStore = useMenuStore()
+const activeId = ref<number | null>(null)
 
 // 注册所有图标组件
-const icons = ref<Record<string, any>>({});
+const icons = ref<Record<string, any>>({})
 onMounted(() => {
-  menuStore.loadMenus();
+  menuStore.loadMenus()
   // 初始化图标组件，使用 markRaw 处理
   icons.value = Object.entries(ElementPlusIconsVue).reduce(
     (acc, [key, component]) => {
-      if (key !== "default") {
-        acc[key] = markRaw(component);
+      if (key !== 'default') {
+        acc[key] = markRaw(component)
       }
-      return acc;
+      return acc
     },
-    {} as Record<string, any>
-  );
-});
+    {} as Record<string, any>,
+  )
+})
 
 // 获取图标组件
-const getIcon = (iconName: string) => {
-  return icons.value[iconName] || markRaw(Menu);
-};
+function getIcon(iconName: string | undefined) {
+  return iconName ? icons.value[iconName] : markRaw(Menu)
+}
 
 // 路由跳转
-const handleLink = (item:any) => {
-  activeId.value = item.id;
-  if(item.path){
-    router.push(item.path);
+function handleLink(item: any) {
+  activeId.value = item.id
+  if (item.path) {
+    router.push(item.path)
   }
-};
+}
 </script>
 
 <template>
@@ -66,7 +66,8 @@ const handleLink = (item:any) => {
           </summary>
           <ul>
             <li
-              v-for="child in menu.children"
+              v-for="(child, i) in menu.children"
+              :key="i"
               :class="{ 'menu-active': activeId === child.id }"
             >
               <p @click.stop="handleLink(child)">
@@ -109,6 +110,7 @@ const handleLink = (item:any) => {
     </template>
   </div>
 </template>
+
 <style scoped>
 .menu-icon {
   width: 1em;

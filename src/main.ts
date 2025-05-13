@@ -1,38 +1,36 @@
-// 引入模板的全局样式
-import "@/assets/styles/index.css";
-
-import { createApp } from "vue";
-import pinia from "./stores";
-import "element-plus/dist/index.css";
+import { addDynamicRoutes } from '@/router/components/dynamicRoutes'
 
 // import './assets/styles/index.css';
 
-//全局导入Element plus
-import ElementPlus from "element-plus";
-import App from "./App.vue";
-import router from "./router";
-import { addDynamicRoutes } from "@/router/components/dynamicRoutes";
-import { GET_TOKEN } from "@/utils/token";
-import { usePermissionStore } from '@/stores/user/permissionStore';
+import { usePermissionStore } from '@/stores/user/permissionStore'
+import { GET_TOKEN } from '@/utils/token'
+// 全局导入Element plus
+import ElementPlus from 'element-plus'
+// 全局导入Element plus
+import { createApp } from 'vue'
+import App from './App.vue'
+import router from './router'
+import pinia from './stores'
 
-const app = createApp(App);
+const app = createApp(App)
 
-app.use(pinia);
+app.use(pinia)
 // app.use(router);
-app.use(ElementPlus);
+app.use(ElementPlus)
 // 刷新持久化路由
-const token = GET_TOKEN();
-const permissionStore = usePermissionStore();
-permissionStore.loadPermissionsFromStorage();
+const token = GET_TOKEN()
+const permissionStore = usePermissionStore()
+permissionStore.loadPermissionsFromStorage()
 if (token) {
   addDynamicRoutes(router)
-    .then(() => app.use(router).mount("#app"))
+    .then(() => app.use(router).mount('#app'))
     .catch(() => {
       // fallback：token失效，跳转登录或提示
-      app.use(router).mount("#app");
-    });
-} else {
-  app.use(router).mount("#app");
+      app.use(router).mount('#app')
+    })
+}
+else {
+  app.use(router).mount('#app')
 }
 
 // app.mount("#app");

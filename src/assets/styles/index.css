@@ -2,7 +2,6 @@
 
 @custom-variant dark (&:is(.dark *));
 @plugin "daisyui";
-@import "./reset.scss";
 
 :root {
   --background: oklch(1 0 0);
