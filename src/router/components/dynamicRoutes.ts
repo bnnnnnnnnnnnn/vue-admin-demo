@@ -6,6 +6,7 @@ import type { menus } from "@/api/system/type";
 function buildRoutes(routeList: any) {
   // 1. 动态引入所有视图组件
   const modules = import.meta.glob("@/views/**/*.vue");
+  // console.log(modules,routeList);
   return routeList.map((route: Partial<menus>) => {
     const { path, name, redirect, component, children } = route;
     const routeObj = {
@@ -24,6 +25,8 @@ export const addDynamicRoutes = async ($router: any) => {
   try {
     const routesList = JSON.parse(localStorage.getItem("routesList") || "[]");
     const routes = buildRoutes(routesList);
+    // console.log("routes", routes);
+    
     if (routes.length) {
       $router.addRoute({
         path: "/",

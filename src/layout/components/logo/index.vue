@@ -1,4 +1,4 @@
-<!-- 代码已包含 CSS：使用 TailwindCSS , 安装 TailwindCSS 后方可看到布局样式效果 -->
+
 <template>
     <div class="login-page">
     <div id="particles-js" ref="particlesContainer"></div>
@@ -46,7 +46,7 @@
     </div>
     <el-button
     type="primary"
-    class="login-btn !rounded-button whitespace-nowrap"
+    class="login-btn !rounded-button whitespace-nowrap"     
     @click="handleLogin"
     >
     登录

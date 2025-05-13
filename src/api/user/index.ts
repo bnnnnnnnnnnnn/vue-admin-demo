@@ -44,11 +44,11 @@ export const reqUserInfo = async (): Promise<any> => {
   }
 
   const user = data.user;
-  console.log("当前用户:", user);
+  // console.log("当前用户:", user);
 
   // 获取角色信息
   const role = user?.user_metadata?.role || "未分配角色";
-  console.log("用户角色:", role);
+  // console.log("用户角色:", role);
 
   return { user, role };
 };
